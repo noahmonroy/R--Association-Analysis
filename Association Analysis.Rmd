@@ -1,0 +1,78 @@
+---
+title: "Lab 8: Association Analysis with R"
+output: html_notebook
+---
+
+```{r}
+groceries <- read.csv("groceries.csv")
+```
+Explore dataset
+```{r}
+str(groceries)
+```
+Create sparse matrix
+```{r}
+install.packages("arules")
+library(arules)
+
+#Create a sparse matrix
+groceries <- read.transactions("groceries.csv", sep = ",")
+summary(groceries)
+
+#Look at contents
+inspect(groceries[1:3])
+
+#Display the spars matrix for the first five transactions
+image(groceries[1:5])
+
+#To view the support level for the first three items in the grocery data:
+itemFrequency(groceries[, 1:3])
+
+#Show items with at least 10% support:
+itemFrequencyPlot(groceries, support = 0.1)
+
+#20 items
+itemFrequencyPlot(groceries, topN = 20)
+```
+Generate rules
+```{r}
+#Goal is to see if an item is bought 2x a day.
+groceryrules <- apriori(groceries, 
+                        parameter = list(support =0.006, 
+                                         confidence = 0.25,
+                                         minlen = 2))
+
+summary(groceryrules)
+
+#Check out first 3 rules
+inspect(groceryrules[1:3])
+```
+Improve model performance- sorting
+```{r}
+inspect(sort(groceryrules, by = "lift")[1:5])
+```
+Suppose that given the preceding rule, the marketing team is excited about the possibilities of creating an advertisement to promote berries, which are now in season. Before finalizing the campaign, however, they ask you to investigate whether berries are often purchased with other items. To answer this question, we’ll need to find all the rules that include berries in some form.
+```{r}
+berryrules <- subset(groceryrules, items %in% "berries")
+inspect(berryrules)
+```
+Save association rules to file
+```{r}
+write(groceryrules, file = "groceryrules.csv", 
+      sep = ",", quote = TRUE, row.names = FALSE)
+```
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
